@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: firelink_development
+      POSTGRES_USER: firelink_user
+      POSTGRES_PASSWORD: firelink_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql
+
+  backend:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_USERNAME=firelink_user
+      - DB_PASSWORD=firelink_password
+      - DB_NAME=firelink_development
+      - JWT_SECRET=firelink-systems-jwt-secret-key-2024
+      - JWT_REFRESH_SECRET=firelink-refresh-secret-key-2024
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL=http://localhost:3001
+
+volumes:
+  postgres_data:
