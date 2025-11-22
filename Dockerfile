@@ -2,18 +2,15 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy backend
-COPY backend/ ./backend/
-COPY migrations/ ./migrations/
+# Copy everything
+COPY . .
 
 # Install and build backend
 WORKDIR /app/backend
 RUN npm install
 RUN npm run build
 
-# Install frontend
-WORKDIR /app
-COPY frontend/ ./frontend/
+# Install and build frontend  
 WORKDIR /app/frontend
 RUN npm install
 RUN npm run build
