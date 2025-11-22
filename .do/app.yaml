@@ -1,0 +1,40 @@
+name: firelink-crm
+services:
+- name: backend
+  source_dir: /backend
+  github:
+    branch: main
+  run_command: npm start
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 3001
+  routes:
+  - path: /api
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: JWT_SECRET
+    value: your-super-secure-jwt-secret-key-change-this-123
+  - key: JWT_REFRESH_SECRET
+    value: your-different-refresh-secret-key-change-this-456
+
+- name: frontend
+  source_dir: /frontend
+  github:
+    branch: main
+  environment_slug: static
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  routes:
+  - path: /
+  static_sites:
+  - build_command: npm run build
+    output_dir: build
+
+databases:
+- name: firelink-db
+  engine: PG
+  version: "15"
+  size_slug: db-s-1vcpu-1gb
+  num_nodes: 1
