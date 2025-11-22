@@ -1,23 +1,43 @@
+FROM node:18-alpine AS backend-build
+
+WORKDIR /app/backend
+
+# Copy backend package files
+COPY backend/package*.json ./
+
+# Install backend dependencies
+RUN npm install
+
+# Copy backend source and build
+COPY backend/ ./
+RUN npm run build
+
+FROM node:18-alpine AS frontend-build
+
+WORKDIR /app/frontend
+
+# Copy frontend package files
+COPY frontend/package*.json ./
+
+# Install frontend dependencies
+RUN npm install
+
+# Copy frontend source and build
+COPY frontend/ ./
+RUN npm run build
+
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY backend/package*.json ./backend/
-COPY frontend/package*.json ./frontend/
+# Copy built applications
+COPY --from=backend-build /app/backend/dist ./backend/dist
+COPY --from=backend-build /app/backend/node_modules ./backend/node_modules
+COPY --from=backend-build /app/backend/package*.json ./backend/
+COPY --from=frontend-build /app/frontend/build ./frontend/build
 
-# Install dependencies (use npm install instead of npm ci)
-RUN cd backend && npm install
-RUN cd frontend && npm install
-
-# Copy source code
-COPY backend/ ./backend/
-COPY frontend/ ./frontend/
+# Copy migrations and other files
 COPY migrations/ ./migrations/
-
-# Build applications
-RUN cd backend && npm run build
-RUN cd frontend && npm run build
 
 # Expose port
 EXPOSE 3001
