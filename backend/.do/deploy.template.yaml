@@ -1,0 +1,20 @@
+name: firelink-backend
+services:
+- name: web
+  source_dir: /backend
+  github:
+    branch: main
+  run_command: npm start
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 3001
+  routes:
+  - path: /api
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: JWT_SECRET
+    value: your-super-secure-jwt-secret-key-change-this-123
+  - key: JWT_REFRESH_SECRET
+    value: your-different-refresh-secret-key-change-this-456
