@@ -1,19 +1,17 @@
-FROM node:18-alpine
+FROM node:18-slim
 
 WORKDIR /app
 
-# Install OpenSSL and other dependencies
-RUN apk add --no-cache \
-    openssl \
-    postgresql-client \
-    bash \
-    curl
+# Install additional dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy package files first (for better caching)
+# Copy package files
 COPY backend/package*.json ./
 
-# Install dependencies (skip Prisma for now)
-RUN npm install --omit=dev --ignore-scripts
+# Install dependencies
+RUN npm install --omit=dev
 
 # Copy source code
 COPY backend/src ./src
@@ -23,11 +21,8 @@ COPY backend/tsconfig.json ./
 RUN npm run build
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S appuser -u 1001
-
-# Change ownership
-RUN chown -R appuser:nodejs /app
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
@@ -37,7 +32,7 @@ EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3001/health || exit 1
+    CMD node health-check.js
 
 # Start the application
 CMD ["npm", "start"]
