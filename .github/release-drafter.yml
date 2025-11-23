@@ -1,0 +1,56 @@
+name-template: 'v$RESOLVED_VERSION 🌟'
+tag-template: 'v$RESOLVED_VERSION'
+change-template: '- $TITLE by @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+version-resolver:
+  major:
+    labels:
+      - 'major'
+  minor:
+    labels:
+      - 'minor'
+  patch:
+    labels:
+      - 'patch'
+  default: patch
+
+categories:
+  - title: '🚀 New Features'
+    labels:
+      - 'enhancement'
+      - 'feature'
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'bug'
+      - 'fix'
+  - title: '🔒 Security Updates'
+    labels:
+      - 'security'
+  - title: '📚 Documentation'
+    labels:
+      - 'documentation'
+  - title: '🇬🇧 UK Compliance Updates'
+    labels:
+      - 'uk-compliance'
+      - 'bs5839'
+      - 'vat'
+  - title: '🧹 Maintenance'
+    labels:
+      - 'chore'
+      - 'dependencies'
+  - title: '🚨 Breaking Changes'
+    labels:
+      - 'breaking-change'
+
+template: |
+  ## What's Changed
+
+  $CHANGES
+
+  ## UK Compliance Notes
+  This release includes updates to:
+  - BS5839 certificate generation
+  - UK VAT calculations
+  - Compliance documentation
+
+  **Full Changelog**: https://github.com/firelinksystem/firelink-system/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
