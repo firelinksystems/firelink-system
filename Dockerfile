@@ -2,6 +2,13 @@ FROM node:18-alpine
 
 WORKDIR /app
 
+# Install OpenSSL and other dependencies
+RUN apk add --no-cache \
+    openssl \
+    postgresql-client \
+    bash \
+    curl
+
 # Copy backend files
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma/
