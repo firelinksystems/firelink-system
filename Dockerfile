@@ -1,27 +1,33 @@
-FROM node:18
+FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy backend files
+# Install OpenSSL and other dependencies
+RUN apk add --no-cache \
+    openssl \
+    postgresql-client \
+    bash \
+    curl
+
+# Copy package files first (for better caching)
 COPY backend/package*.json ./
-COPY backend/prisma ./prisma/
 
-# Install dependencies
-RUN npm install --omit=dev
+# Install dependencies (skip Prisma for now)
+RUN npm install --omit=dev --ignore-scripts
 
-# Generate Prisma client
-RUN npx prisma generate
-
-# Copy backend source
+# Copy source code
 COPY backend/src ./src
 COPY backend/tsconfig.json ./
 
-# Build backend
+# Build the application
 RUN npm run build
 
 # Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-RUN chown -R appuser:appuser /app
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S appuser -u 1001
+
+# Change ownership
+RUN chown -R appuser:nodejs /app
 
 # Switch to non-root user
 USER appuser
@@ -31,7 +37,7 @@ EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node health-check.js
+    CMD curl -f http://localhost:3001/health || exit 1
 
 # Start the application
 CMD ["npm", "start"]
