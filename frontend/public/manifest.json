@@ -1,0 +1,16 @@
+{
+  "name": "FireLink System - UK Fire & Security Management",
+  "short_name": "FireLink",
+  "description": "Comprehensive CRM and business management system for UK fire and security companies",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ef4444",
+  "icons": [
+    {
+      "src": "vite.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    }
+  ]
+}
