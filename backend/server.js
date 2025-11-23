@@ -1,362 +1,120 @@
-const express = require('express');
-
-const app = express();
-
-// Middleware
-app.use(express.json());
-
-// Root endpoint - redirect to API info
-app.get('/', (req, res) => {
-  res.json({ 
-    message: '🔥 FireLink System API',
-    version: '1.0.0',
-    description: 'CRM for UK Fire & Security Companies',
-    documentation: 'Visit /api for available endpoints',
-    health: 'Visit /health for service status'
-  });
-});
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    service: 'FireLink Backend API',
-    version: '1.0.0',
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
-
-// API info
-app.get('/api', (req, res) => {
-  res.json({ 
-    message: '🔥 FireLink System API',
-    version: '1.0.0',
-    description: 'CRM for UK Fire & Security Companies',
-    endpoints: [
-      'GET  /',
-      'GET  /health',
-      'GET  /api',
-      'GET  /api/customers',
-      'GET  /api/customers/:id',
-      'GET  /api/jobs',
-      'GET  /api/jobs/:id',
-      'GET  /api/engineers',
-      'GET  /api/scheduling/calendar',
-      'GET  /api/financial/invoices'
-    ]
-  });
-});
-
-// Mock data
-const customers = [
-  {
-    id: '1',
-    companyName: 'ABC Security Ltd',
-    contactName: 'John Smith',
-    email: 'john@abcsecurity.com',
-    phone: '+441234567890',
-    address: '123 Business Park, London',
-    postcode: 'SW1A 1AA',
-    vatNumber: 'GB123456789'
-  },
-  {
-    id: '2',
-    companyName: 'XYZ Manufacturing',
-    contactName: 'Sarah Johnson',
-    email: 'sarah@xyzmanufacturing.com',
-    phone: '+441234567891',
-    address: '456 Industrial Estate, Manchester',
-    postcode: 'M1 1AB'
-  }
-];
-
-const jobs = [
-  {
-    id: '1',
-    customerId: '1',
-    title: 'Fire Alarm Installation - Office Building',
-    description: 'Install new fire alarm system throughout office building',
-    jobType: 'INSTALLATION',
-    status: 'SCHEDULED',
-    priority: 'HIGH',
-    scheduledStart: '2024-02-01T09:00:00Z',
-    scheduledEnd: '2024-02-01T17:00:00Z',
-    estimatedHours: 8
-  },
-  {
-    id: '2',
-    customerId: '2',
-    title: 'Emergency Lighting Service',
-    description: 'Routine service and testing of emergency lighting systems',
-    jobType: 'SERVICE',
-    status: 'COMPLETED',
-    priority: 'MEDIUM',
-    scheduledStart: '2024-01-15T10:00:00Z',
-    scheduledEnd: '2024-01-15T14:00:00Z',
-    estimatedHours: 4,
-    actualHours: 3.5
-  }
-];
-
-const engineers = [
-  {
-    id: '1',
-    name: 'Mike Engineer',
-    email: 'mike@firelinksystem.com',
-    phone: '+441234567891',
-    skills: ['fire_alarms', 'cctv', 'access_control'],
-    hourlyRate: 45.00,
-    isActive: true
-  },
-  {
-    id: '2',
-    name: 'Sarah Technician',
-    email: 'sarah@firelinksystem.com',
-    phone: '+441234567892',
-    skills: ['emergency_lighting', 'fire_extinguishers'],
-    hourlyRate: 40.00,
-    isActive: true
-  }
-];
-
-// Customers API
-app.get('/api/customers', (req, res) => {
-  const { search, page = 1, limit = 10 } = req.query;
-  
-  let filteredCustomers = customers;
-  
-  // Basic search functionality
-  if (search) {
-    filteredCustomers = customers.filter(customer => 
-      customer.companyName?.toLowerCase().includes(search.toLowerCase()) ||
-      customer.contactName.toLowerCase().includes(search.toLowerCase()) ||
-      customer.email.toLowerCase().includes(search.toLowerCase())
-    );
-  }
-  
-  // Basic pagination
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + parseInt(limit);
-  const paginatedCustomers = filteredCustomers.slice(startIndex, endIndex);
-  
-  res.json({
-    success: true,
-    data: paginatedCustomers,
-    total: filteredCustomers.length,
-    page: parseInt(page),
-    limit: parseInt(limit),
-    totalPages: Math.ceil(filteredCustomers.length / limit)
-  });
-});
-
-app.get('/api/customers/:id', (req, res) => {
-  const customer = customers.find(c => c.id === req.params.id);
-  if (!customer) {
-    return res.status(404).json({
-      success: false,
-      error: 'Customer not found'
-    });
-  }
-  
-  // Get customer's jobs
-  const customerJobs = jobs.filter(job => job.customerId === req.params.id);
-  
-  res.json({
-    success: true,
-    data: {
-      ...customer,
-      jobs: customerJobs
-    }
-  });
-});
-
-// Jobs API
-app.get('/api/jobs', (req, res) => {
-  const { status, customerId, page = 1, limit = 10 } = req.query;
-  
-  let filteredJobs = jobs;
-  
-  // Filter by status
-  if (status) {
-    filteredJobs = filteredJobs.filter(job => job.status === status.toUpperCase());
-  }
-  
-  // Filter by customer
-  if (customerId) {
-    filteredJobs = filteredJobs.filter(job => job.customerId === customerId);
-  }
-  
-  // Add customer details to jobs
-  const jobsWithCustomers = filteredJobs.map(job => ({
-    ...job,
-    customer: customers.find(c => c.id === job.customerId)
-  }));
-  
-  // Basic pagination
-  const startIndex = (page - 1) * limit;
-  const endIndex = startIndex + parseInt(limit);
-  const paginatedJobs = jobsWithCustomers.slice(startIndex, endIndex);
-  
-  res.json({
-    success: true,
-    data: paginatedJobs,
-    total: filteredJobs.length,
-    page: parseInt(page),
-    limit: parseInt(limit),
-    totalPages: Math.ceil(filteredJobs.length / limit)
-  });
-});
-
-app.get('/api/jobs/:id', (req, res) => {
-  const job = jobs.find(j => j.id === req.params.id);
-  if (!job) {
-    return res.status(404).json({
-      success: false,
-      error: 'Job not found'
-    });
-  }
-  
-  const jobWithCustomer = {
-    ...job,
-    customer: customers.find(c => c.id === job.customerId)
-  };
-  
-  res.json({
-    success: true,
-    data: jobWithCustomer
-  });
-});
-
-// Engineers API
-app.get('/api/engineers', (req, res) => {
-  res.json({
-    success: true,
-    data: engineers,
-    total: engineers.length
-  });
-});
-
-// Scheduling API
-app.get('/api/scheduling/calendar', (req, res) => {
-  const schedule = jobs.map(job => ({
-    id: job.id,
-    jobId: job.id,
-    title: job.title,
-    start: job.scheduledStart,
-    end: job.scheduledEnd,
-    engineer: 'Mike Engineer', // In real app, this would come from assignments
-    customer: customers.find(c => c.id === job.customerId)?.companyName,
-    status: job.status.toLowerCase()
-  }));
-  
-  res.json({
-    success: true,
-    data: schedule
-  });
-});
-
-// Financial API
-app.get('/api/financial/invoices', (req, res) => {
-  const invoices = [
-    {
-      id: '1',
-      jobId: '1',
-      invoiceNumber: 'INV-001',
-      amount: 2500.00,
-      vatAmount: 500.00,
-      totalAmount: 3000.00,
-      status: 'SENT',
-      dueDate: '2024-02-15T00:00:00Z',
-      sentDate: '2024-01-20T00:00:00Z',
-      job: {
-        title: 'Fire Alarm Installation - Office Building',
-        customer: {
-          companyName: 'ABC Security Ltd'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FireLink System - UK Fire & Security CRM</title>
+    <script>
+        // Auto-detect protocol and handle SSL issues
+        function getApiBase() {
+            // If we're on HTTPS but backend is HTTP, use current host with HTTP
+            if (window.location.protocol === 'https:') {
+                // Try to use HTTP for API calls to avoid mixed content issues
+                return `http://${window.location.hostname}:3001`;
+            }
+            return window.location.origin;
         }
-      }
-    },
-    {
-      id: '2',
-      jobId: '2',
-      invoiceNumber: 'INV-002',
-      amount: 600.00,
-      vatAmount: 120.00,
-      totalAmount: 720.00,
-      status: 'PAID',
-      dueDate: '2024-01-30T00:00:00Z',
-      sentDate: '2024-01-16T00:00:00Z',
-      paidDate: '2024-01-25T00:00:00Z',
-      job: {
-        title: 'Emergency Lighting Service',
-        customer: {
-          companyName: 'XYZ Manufacturing'
+    </script>
+    <style>
+        /* Your existing CSS remains the same */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 2rem; text-align: center; }
+        .logo { color: #ef4444; font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+        .ssl-warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; color: #92400e; }
+        .ssl-warning a { color: #dc2626; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SSL Warning Banner -->
+        <div class="ssl-warning" id="sslWarning" style="display: none;">
+            <strong>🔒 SSL Notice:</strong> This application is running in development mode. 
+            For production use, configure SSL certificates at your load balancer or use a reverse proxy like nginx.
+            <br><small>Current API endpoint: <span id="apiEndpoint">detecting...</span></small>
+        </div>
+
+        <div class="header">
+            <div class="logo">🔥 FireLink System</div>
+            <div class="subtitle">CRM for UK Fire & Security Companies</div>
+        </div>
+        
+        <!-- Rest of your HTML remains the same -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="customers-count">--</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+            <!-- ... rest of your stats -->
+        </div>
+        
+        <div class="nav-buttons">
+            <button class="btn" onclick="loadCustomers()">View Customers</button>
+            <!-- ... rest of your buttons -->
+        </div>
+        
+        <!-- ... rest of your HTML -->
+    </div>
+
+    <script>
+        const API_BASE = getApiBase();
+        
+        // Show SSL warning if needed
+        if (window.location.protocol === 'https:' && API_BASE.startsWith('http:')) {
+            document.getElementById('sslWarning').style.display = 'block';
+            document.getElementById('apiEndpoint').textContent = API_BASE;
         }
-      }
-    }
-  ];
-  
-  res.json({
-    success: true,
-    data: invoices,
-    total: invoices.length
-  });
-});
-
-// Profit & Loss API
-app.get('/api/financial/profit-loss', (req, res) => {
-  const report = {
-    period: {
-      startDate: '2024-01-01',
-      endDate: '2024-01-31'
-    },
-    revenue: 3720.00,
-    costs: {
-      labour: 800.00,
-      materials: 450.00,
-      travel: 120.00,
-      subcontractor: 0.00,
-      overhead: 500.00
-    },
-    totalCosts: 1870.00,
-    grossProfit: 1850.00,
-    netProfit: 1850.00,
-    margin: 49.7
-  };
-  
-  res.json({
-    success: true,
-    data: report
-  });
-});
-
-// 404 handler - should be last
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'Route not found',
-    path: req.originalUrl,
-    suggestion: 'Try visiting /api for available endpoints'
-  });
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(500).json({
-    success: false,
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
-  });
-});
-
-const PORT = process.env.PORT || 3001;
-
-app.listen(PORT, () => {
-  console.log(`🔥 FireLink Server running on port ${PORT}`);
-  console.log(`🌐 Root: http://localhost:${PORT}/`);
-  console.log(`📊 Health: http://localhost:${PORT}/health`);
-  console.log(`🚀 API: http://localhost:${PORT}/api`);
-  console.log(`💼 Customers: http://localhost:${PORT}/api/customers`);
-  console.log(`🔧 Jobs: http://localhost:${PORT}/api/jobs`);
-});
+        
+        // Your existing JavaScript functions remain the same
+        async function loadStats() {
+            try {
+                const [customersRes, healthRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/customers`).catch(err => null),
+                    fetch(`${API_BASE}/health`).catch(err => null)
+                ]);
+                
+                // Handle responses
+                if (customersRes && customersRes.ok) {
+                    const data = await customersRes.json();
+                    document.getElementById('customers-count').textContent = data.total || data.data.length;
+                }
+                
+                if (healthRes && healthRes.ok) {
+                    const data = await healthRes.json();
+                    document.getElementById('system-status').innerHTML = 
+                        `<span style="color: #10b981;">✅ ${data.status} - ${data.service}</span>`;
+                } else {
+                    document.getElementById('system-status').innerHTML = 
+                        '<span style="color: #ef4444;">❌ API Connection Issue - Check SSL Configuration</span>';
+                }
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                document.getElementById('system-status').innerHTML = 
+                    '<span style="color: #ef4444;">❌ Connection Error - Mixed Content/SSL Issue</span>';
+            }
+        }
+        
+        // Your existing data loading functions remain the same
+        async function loadCustomers() {
+            try {
+                document.getElementById('data-display').innerHTML = '<div class="loading">Loading customers...</div>';
+                const response = await fetch(`${API_BASE}/api/customers`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                displayData('Customers', data.data);
+            } catch (error) {
+                document.getElementById('data-display').innerHTML = 
+                    `<div style="color: #ef4444;">
+                        <strong>Error loading data:</strong><br>
+                        ${error.message}<br>
+                        <small>Check that your backend is running and accessible</small>
+                    </div>`;
+            }
+        }
+        
+        // ... rest of your JavaScript functions
+    </script>
+</body>
+</html>
