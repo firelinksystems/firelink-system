@@ -1,14 +1,15 @@
 # Multi-stage build for production
 FROM node:18-alpine AS backend-build
 
-WORKDIR /app/backend
+WORKDIR /app
 
 # Copy backend files
-COPY backend/package*.json ./
-COPY backend/prisma ./prisma/
+COPY backend/package*.json ./backend/
+COPY backend/prisma ./backend/prisma/
 
 # Install backend dependencies
-RUN npm ci --only=production
+WORKDIR /app/backend
+RUN npm install --omit=dev
 
 # Generate Prisma client
 RUN npx prisma generate
@@ -29,7 +30,7 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 
 # Install frontend dependencies
-RUN npm ci
+RUN npm install
 
 # Copy frontend source
 COPY frontend/ ./
@@ -45,7 +46,8 @@ WORKDIR /app
 # Install dependencies for production
 RUN apk add --no-cache \
     postgresql-client \
-    bash
+    bash \
+    curl
 
 # Create app user
 RUN addgroup -g 1001 -S nodejs
@@ -65,7 +67,7 @@ EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node health-check.js
+    CMD curl -f http://localhost:3001/health || exit 1
 
 # Start the application
 CMD ["npm", "start"]
