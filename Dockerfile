@@ -1,14 +1,12 @@
-# Multi-stage build for production
-FROM node:18-alpine AS backend-build
+FROM node:18-alpine
 
 WORKDIR /app
 
 # Copy backend files
-COPY backend/package*.json ./backend/
-COPY backend/prisma ./backend/prisma/
+COPY backend/package*.json ./
+COPY backend/prisma ./prisma/
 
-# Install backend dependencies
-WORKDIR /app/backend
+# Install dependencies
 RUN npm install --omit=dev
 
 # Generate Prisma client
@@ -21,46 +19,15 @@ COPY backend/tsconfig.json ./
 # Build backend
 RUN npm run build
 
-# Frontend build stage
-FROM node:18-alpine AS frontend-build
-
-WORKDIR /app/frontend
-
-# Copy frontend files
-COPY frontend/package*.json ./
-
-# Install frontend dependencies
-RUN npm install
-
-# Copy frontend source
-COPY frontend/ ./
-
-# Build frontend
-RUN npm run build
-
-# Production stage
-FROM node:18-alpine
-
-WORKDIR /app
-
-# Install dependencies for production
-RUN apk add --no-cache \
-    postgresql-client \
-    bash \
-    curl
-
-# Create app user
+# Create non-root user
 RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+RUN adduser -S appuser -u 1001
 
-# Copy backend
-COPY --from=backend-build --chown=nextjs:nodejs /app/backend ./
-
-# Copy frontend build to serve from backend
-COPY --from=frontend-build --chown=nextjs:nodejs /app/frontend/dist ./public
+# Change ownership
+RUN chown -R appuser:nodejs /app
 
 # Switch to non-root user
-USER nextjs
+USER appuser
 
 # Expose port
 EXPOSE 3001
