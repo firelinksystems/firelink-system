@@ -5,18 +5,16 @@ WORKDIR /app
 # Install curl for health checks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Copy package files
+# Copy backend files
 COPY backend/package.json ./
-
-# Install dependencies
-RUN npm install --omit=dev
-
-# Copy backend source code
 COPY backend/server.js ./
 
 # Create public directory and copy frontend
 RUN mkdir -p public
-COPY public/index.html ./public/
+COPY backend/public/ ./public/
+
+# Install dependencies
+RUN npm install --omit=dev
 
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
