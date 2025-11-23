@@ -143,4 +143,75 @@ export class FinancialService {
     
     const labourCost = costs
       .filter(cost => cost.costType === 'LABOUR')
-      .reduce((total, cost) => total +
+      .reduce((total, cost) => total + cost.amount, 0);
+    
+    const materialCost = costs
+      .filter(cost => cost.costType === 'MATERIALS')
+      .reduce((total, cost) => total + cost.amount, 0);
+    
+    const travelCost = costs
+      .filter(cost => cost.costType === 'TRAVEL')
+      .reduce((total, cost) => total + cost.amount, 0);
+    
+    const subcontractorCost = costs
+      .filter(cost => cost.costType === 'SUBCONTRACTOR')
+      .reduce((total, cost) => total + cost.amount, 0);
+
+    // Fixed overhead (this would come from a separate overhead calculation)
+    const overhead = 5000;
+
+    const totalCosts = labourCost + materialCost + travelCost + subcontractorCost + overhead;
+    const grossProfit = revenue - totalCosts;
+    const netProfit = grossProfit; // Simplified - would subtract taxes, etc.
+    const margin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+
+    return {
+      period: {
+        startDate: startDate || new Date().toISOString().split('T')[0],
+        endDate: endDate || new Date().toISOString().split('T')[0]
+      },
+      revenue,
+      costs: {
+        labour: labourCost,
+        materials: materialCost,
+        travel: travelCost,
+        subcontractor: subcontractorCost,
+        overhead
+      },
+      totalCosts,
+      grossProfit,
+      netProfit,
+      margin: Number(margin.toFixed(1))
+    };
+  }
+
+  async getVATReport(period: string): Promise<VATReport> {
+    // Calculate VAT report for the given period
+    const invoices = await this.prisma.invoice.findMany({
+      where: {
+        createdAt: {
+          gte: new Date(period + '-01'),
+          lte: new Date(period + '-31')
+        },
+        status: 'PAID'
+      }
+    });
+
+    const totalSales = invoices.reduce((total, invoice) => total + invoice.amount, 0);
+    const totalVAT = invoices.reduce((total, invoice) => total + invoice.vatAmount, 0);
+
+    // Simplified - in reality, you'd calculate reclaimable VAT from purchases
+    const totalPurchases = totalSales * 0.4; // Mock data
+    const reclaimableVAT = totalPurchases * 0.2; // 20% VAT on purchases
+    const vatDue = totalVAT - reclaimableVAT;
+
+    return {
+      period,
+      totalSales,
+      totalVAT,
+      totalPurchases,
+      reclaimableVAT,
+      vatDue
+    };
+  }
+}
