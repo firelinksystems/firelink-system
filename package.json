@@ -14,12 +14,33 @@
     "test:frontend": "cd frontend && npm test",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down"
+    "docker:down": "docker-compose down",
+    "docker:prod-build": "docker-compose -f docker-compose.prod.yml build",
+    "docker:prod-up": "docker-compose -f docker-compose.prod.yml up -d",
+    "docker:prod-down": "docker-compose -f docker-compose.prod.yml down",
+    "db:migrate": "cd backend && npm run db:migrate",
+    "db:seed": "cd backend && npm run db:seed"
   },
   "devDependencies": {
     "concurrently": "^7.6.0"
   },
-  "keywords": ["crm", "fire-safety", "security", "business-management", "uk"],
+  "keywords": [
+    "crm",
+    "fire-safety",
+    "security",
+    "business-management",
+    "uk",
+    "fire-alarms",
+    "bs5839"
+  ],
   "author": "FireLink System",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firelinksystem/firelink-system.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
 }
