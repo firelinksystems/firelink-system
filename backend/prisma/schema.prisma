@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,6 +24,7 @@ model Customer {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   
+  // Relations
   jobs Job[]
   
   @@map("customers")
@@ -31,11 +35,12 @@ model Engineer {
   name        String
   email       String   @unique
   phone       String?
-  skills      Json     // Array of skills
+  skills      String[] // Array of skills as JSON
   hourlyRate  Float
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   
+  // Relations
   jobAssignments JobAssignment[]
   
   @@map("engineers")
@@ -58,10 +63,11 @@ model Job {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   
-  customer          Customer   @relation(fields: [customerId], references: [id])
-  jobAssignments    JobAssignment[]
-  jobCosts          JobCost[]
-  invoices          Invoice[]
+  // Relations
+  customer       Customer         @relation(fields: [customerId], references: [id])
+  jobAssignments JobAssignment[]
+  jobCosts       JobCost[]
+  invoices       Invoice[]
   
   @@map("jobs")
 }
@@ -74,8 +80,9 @@ model JobAssignment {
   actualHours Float?
   role        String
   
-  job        Job      @relation(fields: [jobId], references: [id])
-  engineer   Engineer @relation(fields: [engineerId], references: [id])
+  // Relations
+  job      Job      @relation(fields: [jobId], references: [id])
+  engineer Engineer @relation(fields: [engineerId], references: [id])
   
   @@map("job_assignments")
 }
@@ -90,6 +97,7 @@ model JobCost {
   unitCost    Float?
   dateIncurred DateTime @default(now())
   
+  // Relations
   job Job @relation(fields: [jobId], references: [id])
   
   @@map("job_costs")
@@ -108,7 +116,9 @@ model Invoice {
   paidDate     DateTime?
   createdAt    DateTime @default(now())
   
-  job Job @relation(fields: [jobId], references: [id])
+  // Relations
+  job    Job     @relation(fields: [jobId], references: [id])
+  payments Payment[]
   
   @@map("invoices")
 }
@@ -123,6 +133,7 @@ model Payment {
   status       String
   reference    String
   
+  // Relations
   invoice Invoice @relation(fields: [invoiceId], references: [id])
   
   @@map("payments")
