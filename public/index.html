@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FireLink System - UK Fire & Security CRM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .logo {
+            color: #ef4444;
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: #64748b;
+            font-size: 1.2rem;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #ef4444;
+        }
+        
+        .card h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ef4444;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        
+        .btn {
+            background: #ef4444;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background: #dc2626;
+        }
+        
+        .btn-secondary {
+            background: #64748b;
+        }
+        
+        .btn-secondary:hover {
+            background: #475569;
+        }
+        
+        .api-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .api-section h3 {
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        
+        .endpoint {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #ef4444;
+        }
+        
+        .method {
+            display: inline-block;
+            background: #ef4444;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+        
+        .loading {
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .data-display {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🔥 FireLink System</div>
+            <div class="subtitle">CRM for UK Fire & Security Companies</div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="customers-count">--</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="jobs-count">--</div>
+                <div class="stat-label">Active Jobs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="invoices-count">--</div>
+                <div class="stat-label">Invoices</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="engineers-count">--</div>
+                <div class="stat-label">Engineers</div>
+            </div>
+        </div>
+        
+        <div class="nav-buttons">
+            <button class="btn" onclick="loadCustomers()">View Customers</button>
+            <button class="btn" onclick="loadJobs()">View Jobs</button>
+            <button class="btn" onclick="loadInvoices()">View Invoices</button>
+            <button class="btn" onclick="loadEngineers()">View Engineers</button>
+            <button class="btn" onclick="loadSchedule()">View Schedule</button>
+            <button class="btn" onclick="loadFinancials()">View P&L</button>
+        </div>
+        
+        <div class="dashboard">
+            <div class="card">
+                <h3>📊 System Status</h3>
+                <div id="system-status" class="loading">Checking system health...</div>
+            </div>
+            
+            <div class="card">
+                <h3>🚀 Quick Actions</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <button class="btn" onclick="addCustomer()">Add New Customer</button>
+                    <button class="btn" onclick="createJob()">Create New Job</button>
+                    <button class="btn" onclick="generateInvoice()">Generate Invoice</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="api-section">
+            <h3>📋 Data Display</h3>
+            <div id="data-display" class="data-display">
+                Select an option above to view data...
+            </div>
+        </div>
+        
+        <div class="api-section">
+            <h3>🔗 API Endpoints</h3>
+            <div class="endpoint">
+                <span class="method">GET</span> <code>/health</code> - System health check
+            </div>
+            <div class="endpoint">
+                <span class="method">GET</span> <code>/api/customers</code> - List customers
+            </div>
+            <div class="endpoint">
+                <span class="method">GET</span> <code>/api/jobs</code> - List jobs
+            </div>
+            <div class="endpoint">
+                <span class="method">GET</span> <code>/api/engineers</code> - List engineers
+            </div>
+            <div class="endpoint">
+                <span class="method">GET</span> <code>/api/financial/invoices</code> - List invoices
+            </div>
+            <div class="endpoint">
+                <span class="method">GET</span> <code>/api/financial/profit-loss</code> - P&L report
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        // Load initial stats
+        async function loadStats() {
+            try {
+                const [customersRes, jobsRes, invoicesRes, engineersRes, healthRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/customers`),
+                    fetch(`${API_BASE}/api/jobs`),
+                    fetch(`${API_BASE}/api/financial/invoices`),
+                    fetch(`${API_BASE}/api/engineers`),
+                    fetch(`${API_BASE}/health`)
+                ]);
+                
+                if (customersRes.ok) {
+                    const data = await customersRes.json();
+                    document.getElementById('customers-count').textContent = data.total || data.data.length;
+                }
+                
+                if (jobsRes.ok) {
+                    const data = await jobsRes.json();
+                    document.getElementById('jobs-count').textContent = data.total || data.data.length;
+                }
+                
+                if (invoicesRes.ok) {
+                    const data = await invoicesRes.json();
+                    document.getElementById('invoices-count').textContent = data.total || data.data.length;
+                }
+                
+                if (engineersRes.ok) {
+                    const data = await engineersRes.json();
+                    document.getElementById('engineers-count').textContent = data.total || data.data.length;
+                }
+                
+                if (healthRes.ok) {
+                    const data = await healthRes.json();
+                    document.getElementById('system-status').innerHTML = 
+                        `<span style="color: #10b981;">✅ ${data.status} - ${data.service}</span><br>
+                         <small>Version: ${data.version} | Environment: ${data.environment || 'production'}</small>`;
+                }
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                document.getElementById('system-status').innerHTML = 
+                    '<span style="color: #ef4444;">❌ Unable to connect to API</span>';
+            }
+        }
+        
+        // Data loading functions
+        async function loadCustomers() {
+            try {
+                document.getElementById('data-display').innerHTML = '<div class="loading">Loading customers...</div>';
+                const response = await fetch(`${API_BASE}/api/customers`);
+                const data = await response.json();
+                displayData('Customers', data.data);
+            } catch (error) {
+                document.getElementById('data-display').innerHTML = `<div style="color: #ef4444;">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadJobs() {
+            try {
+                document.getElementById('data-display').innerHTML = '<div class="loading">Loading jobs...</div>';
+                const response = await fetch(`${API_BASE}/api/jobs`);
+                const data = await response.json();
+                displayData('Jobs', data.data);
+            } catch (error) {
+                document.getElementById('data-display').innerHTML = `<div style="color: #ef4444;">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadInvoices() {
+            try {
+                document.getElementById('data-display').innerHTML = '<div class="loading">Loading invoices...</div>';
+                const response = await fetch(`${API_BASE}/api/financial/invoices`);
+                const data = await response.json();
+                displayData('Invoices', data.data);
+            } catch (error) {
+                document.getElementById('data-display').innerHTML = `<div style="color: #ef4444;">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadEngineers() {
+            try {
+                document.getElementById('data-display').innerHTML = '<div class="loading">Loading engineers...</div>';
+                const response = await fetch(`${API_BASE}/api/engineers`);
+                const data = await response.json();
+                displayData('Engineers', data.data);
+            } catch (error) {
+                document.getElementById('data-display').innerHTML = `<div style="color: #ef4444;">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadSchedule() {
+            try {
+                document.getElementById('data-display').innerHTML = '<div class="loading">Loading schedule...</div>';
+                const response = await fetch(`${API_BASE}/api/scheduling/calendar`);
+                const data = await response.json();
+                displayData('Schedule', data.data);
+            } catch (error) {
+                document.getElementById('data-display').innerHTML = `<div style="color: #ef4444;">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function loadFinancials() {
+            try {
+                document.getElementById('data-display').innerHTML = '<div class="loading">Loading financial report...</div>';
+                const response = await fetch(`${API_BASE}/api/financial/profit-loss`);
+                const data = await response.json();
+                displayData('Profit & Loss', data.data);
+            } catch (error) {
+                document.getElementById('data-display').innerHTML = `<div style="color: #ef4444;">Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Display data in formatted way
+        function displayData(title, data) {
+            const display = document.getElementById('data-display');
+            display.innerHTML = `<h4>${title}</h4><pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+        
+        // Placeholder functions for actions
+        function addCustomer() {
+            alert('Add Customer functionality would go here!');
+        }
+        
+        function createJob() {
+            alert('Create Job functionality would go here!');
+        }
+        
+        function generateInvoice() {
+            alert('Generate Invoice functionality would go here!');
+        }
+        
+        // Initialize
+        loadStats();
+    </script>
+</body>
+</html>
