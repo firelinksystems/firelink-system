@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: FireLink System Documentation
+    url: https://docs.firelinksystem.com
+    about: Check our documentation for answers to common questions
+  - name: UK Compliance Guidelines
+    url: https://docs.firelinksystem.com/compliance
+    about: Learn about UK fire and security compliance requirements
+  - name: Support Email
+    url: mailto:support@firelinksystem.com
+    about: Contact our support team for assistance
