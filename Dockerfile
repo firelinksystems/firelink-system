@@ -2,16 +2,17 @@ FROM node:18-slim
 
 WORKDIR /app
 
-# Install additional dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Install curl for health checks
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY backend/package*.json ./
 
-# Install dependencies
-RUN npm install --omit=dev
+# Install dependencies WITHOUT Prisma
+RUN npm install --omit=dev --ignore-scripts
+
+# Remove any Prisma files if they exist
+RUN rm -rf prisma node_modules/.prisma node_modules/@prisma
 
 # Copy source code
 COPY backend/src ./src
@@ -32,7 +33,7 @@ EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node health-check.js
+    CMD curl -f http://localhost:3001/health || exit 1
 
 # Start the application
 CMD ["npm", "start"]
