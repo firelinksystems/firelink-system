@@ -6,13 +6,10 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Copy package files
-COPY backend/package*.json ./
+COPY backend/package.json ./
 
-# Install dependencies WITHOUT Prisma
-RUN npm install --omit=dev --ignore-scripts
-
-# Remove any Prisma files if they exist
-RUN rm -rf prisma node_modules/.prisma node_modules/@prisma
+# Install dependencies - let npm create fresh lockfile
+RUN npm install --omit=dev
 
 # Copy source code
 COPY backend/src ./src
