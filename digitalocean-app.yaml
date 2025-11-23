@@ -1,0 +1,20 @@
+name: firelink-system
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: firelinksystem/firelink-system
+    branch: main
+  run_command: cd backend && npm start
+  build_command: cd backend && npm install
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  routes:
+  - path: /
+  http_port: 3001
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "3001"
