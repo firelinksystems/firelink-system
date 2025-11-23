@@ -1,0 +1,36 @@
+name: firelink-system
+services:
+  postgres:
+    type: postgresql:15
+    disk: 1024
+
+  redis:
+    type: redis:7
+
+  app:
+    type: nodejs:18
+    disk: 512
+    source:
+      type: git
+    
+    relationships:
+      database: "postgres:postgresql"
+      redis: "redis:redis"
+    
+    web:
+      commands:
+        start: "npm start"
+    
+    hooks:
+      build: |
+        npm run build
+        cd backend && npx prisma generate
+      deploy: |
+        cd backend && npx prisma migrate deploy
+    
+    variables:
+      env:
+        NODE_ENV: production
+        DATABASE_URL: "postgresql://${services.postgres.username}:${services.postgres.password}@${services.postgres.host}:${services.postgres.port}/${services.postgres.database}"
+        REDIS_URL: "redis://${services.redis.host}:${services.redis.port}"
+        JWT_SECRET: "generate-a-secure-jwt-secret"
